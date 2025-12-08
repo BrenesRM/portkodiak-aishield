@@ -1,0 +1,126 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.13, pytest-9.0.1, pluggy-1.6.0
+rootdir: C:\VSCODE\KodiakAI\portkodiak-aishield
+configfile: pyproject.toml
+testpaths: tests
+plugins: anyio-4.12.0, asyncio-1.3.0, cov-7.0.0, mock-3.15.1
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 3 items
+
+tests\unit\test_service.py FFF                                           [100%]
+
+================================== FAILURES ===================================
+______________ TestPortKodiakService.test_service_initialization ______________
+
+self = <test_service.TestPortKodiakService object at 0x0000021CD632B6D0>
+mock_service_deps = {'create_event': <MagicMock name='CreateEvent' id='2322876751248'>, 'log': <MagicMock name='setup_logging' id='2322876838544'>, 'wait': <MagicMock name='WaitForSingleObject' id='2322876516752'>}
+
+    def test_service_initialization(self, mock_service_deps) -> None:
+        """Test service can be initialized."""
+        service = PortKodiakService(['PortKodiakAIShield', 'debug'])
+>       assert service._svc_name_ == "PortKodiakAIShield"
+E       AssertionError: assert <MagicMock name='mock.ServiceFramework._svc_name_' id='2322876844368'> == 'PortKodiakAIShield'
+E        +  where <MagicMock name='mock.ServiceFramework._svc_name_' id='2322876844368'> = <MagicMock name='mock.ServiceFramework' id='2322876625488'>._svc_name_
+
+tests\unit\test_service.py:44: AssertionError
+___________________ TestPortKodiakService.test_service_stop ___________________
+
+self = <test_service.TestPortKodiakService object at 0x0000021CD63CBE50>
+mock_service_deps = {'create_event': <MagicMock name='CreateEvent' id='2322876838480'>, 'log': <MagicMock name='setup_logging' id='2322877009488'>, 'wait': <MagicMock name='WaitForSingleObject' id='2322876953424'>}
+
+    def test_service_stop(self, mock_service_deps) -> None:
+        """Test service stop signal."""
+>       service = PortKodiakService(['PortKodiakAIShield'])
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\unit\test_service.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\brene\AppData\Roaming\uv\python\cpython-3.11.13-windows-x86_64-none\Lib\unittest\mock.py:1124: in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\brene\AppData\Roaming\uv\python\cpython-3.11.13-windows-x86_64-none\Lib\unittest\mock.py:1128: in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <MagicMock spec='str' id='2322876625552'>
+args = (['PortKodiakAIShield'],), kwargs = {}
+effect = <tuple_iterator object at 0x0000021CD63A5600>
+
+    def _execute_mock_call(self, /, *args, **kwargs):
+        # separate from _increment_mock_call so that awaited functions are
+        # executed separately from their call, also AsyncMock overrides this method
+    
+        effect = self.side_effect
+        if effect is not None:
+            if _is_exception(effect):
+                raise effect
+            elif not _callable(effect):
+>               result = next(effect)
+                         ^^^^^^^^^^^^
+E               StopIteration
+
+C:\Users\brene\AppData\Roaming\uv\python\cpython-3.11.13-windows-x86_64-none\Lib\unittest\mock.py:1185: StopIteration
+________________ TestPortKodiakService.test_service_run_logic _________________
+
+self = <test_service.TestPortKodiakService object at 0x0000021CD63E45D0>
+mock_service_deps = {'create_event': <MagicMock name='CreateEvent' id='2322876840848'>, 'log': <MagicMock name='setup_logging' id='2322876524176'>, 'wait': <MagicMock name='WaitForSingleObject' id='2322876834512'>}
+
+    def test_service_run_logic(self, mock_service_deps) -> None:
+        """Test SvcDoRun calls main."""
+>       service = PortKodiakService(['PortKodiakAIShield'])
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\unit\test_service.py:59: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\brene\AppData\Roaming\uv\python\cpython-3.11.13-windows-x86_64-none\Lib\unittest\mock.py:1124: in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\brene\AppData\Roaming\uv\python\cpython-3.11.13-windows-x86_64-none\Lib\unittest\mock.py:1128: in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <MagicMock spec='str' id='2322876625552'>
+args = (['PortKodiakAIShield'],), kwargs = {}
+effect = <tuple_iterator object at 0x0000021CD63A5600>
+
+    def _execute_mock_call(self, /, *args, **kwargs):
+        # separate from _increment_mock_call so that awaited functions are
+        # executed separately from their call, also AsyncMock overrides this method
+    
+        effect = self.side_effect
+        if effect is not None:
+            if _is_exception(effect):
+                raise effect
+            elif not _callable(effect):
+>               result = next(effect)
+                         ^^^^^^^^^^^^
+E               StopIteration
+
+C:\Users\brene\AppData\Roaming\uv\python\cpython-3.11.13-windows-x86_64-none\Lib\unittest\mock.py:1185: StopIteration
+=============================== tests coverage ================================
+______________ coverage: platform win32, python 3.11.13-final-0 _______________
+
+Name                           Stmts   Miss  Cover
+--------------------------------------------------
+agent\__init__.py                  0      0   100%
+agent\wfp_interface.py            22     22     0%
+app\__init__.py                    3      0   100%
+app\common\__init__.py             0      0   100%
+app\common\logging.py             20     14    30%
+app\service\__init__.py            0      0   100%
+app\service\main.py               52     32    38%
+app\ui\__init__.py                 0      0   100%
+app\ui\main_window.py             16     16     0%
+ml\__init__.py                     0      0   100%
+ml\export\__init__.py              0      0   100%
+ml\models\__init__.py              0      0   100%
+ml\preprocessing\__init__.py       0      0   100%
+--------------------------------------------------
+TOTAL                            113     84    26%
+=========================== short test summary info ===========================
+FAILED tests/unit/test_service.py::TestPortKodiakService::test_service_initialization
+FAILED tests/unit/test_service.py::TestPortKodiakService::test_service_stop
+FAILED tests/unit/test_service.py::TestPortKodiakService::test_service_run_logic
+============================== 3 failed in 0.57s ==============================

@@ -6,3 +6,11 @@
 2025-12-06 13:17:34,267 - scripts.dev - INFO - Development environment ready!
 2025-12-06 13:17:34,267 - scripts.dev - INFO - Press Ctrl+C to stop
 2025-12-06 13:17:48,061 - scripts.dev - INFO - Shutting down...
+2025-12-08 11:14:29,779 - scripts.dev - INFO - ============================================================
+2025-12-08 11:14:29,779 - scripts.dev - INFO - PortKodiakAIShield - Development Mode
+2025-12-08 11:14:29,780 - scripts.dev - INFO - ============================================================
+2025-12-08 11:14:29,780 - scripts.dev - INFO - Python version: 3.11.13 (main, Sep  2 2025, 14:14:37) [MSC v.1944 64 bit (AMD64)]
+2025-12-08 11:14:29,781 - scripts.dev - INFO - Working directory: C:\VSCODE\KodiakAI\portkodiak-aishield
+2025-12-08 11:14:29,781 - scripts.dev - INFO - Development environment ready!
+2025-12-08 11:14:29,781 - scripts.dev - INFO - Press Ctrl+C to stop
+2025-12-08 11:14:37,208 - scripts.dev - INFO - Shutting down...

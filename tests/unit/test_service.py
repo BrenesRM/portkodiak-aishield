@@ -5,17 +5,31 @@ import pytest
 
 # Mock win32 modules before importing service
 if 'win32serviceutil' not in sys.modules:
-    sys.modules['win32serviceutil'] = MagicMock()
+    mock_util = MagicMock()
+    # Create a proper class for ServiceFramework so inheritance works correctly
+    class MockServiceFramework:
+        def __init__(self, args):
+            pass
+    mock_util.ServiceFramework = MockServiceFramework
+    sys.modules['win32serviceutil'] = mock_util
+
 if 'win32service' not in sys.modules:
     sys.modules['win32service'] = MagicMock()
     sys.modules['win32service'].SERVICE_STOP_PENDING = 1
+
 if 'win32event' not in sys.modules:
     sys.modules['win32event'] = MagicMock()
-    sys.modules['win32event'].WAIT_OBJECT_0 = 0  # CRITICAL: Must match WaitForSingleObject return
+    sys.modules['win32event'].WAIT_OBJECT_0 = 0
+    sys.modules['win32event'].CreateEvent = MagicMock()
+    sys.modules['win32event'].WaitForSingleObject = MagicMock()
+    sys.modules['win32event'].SetEvent = MagicMock()
+
 if 'servicemanager' not in sys.modules:
     sys.modules['servicemanager'] = MagicMock()
     sys.modules['servicemanager'].EVENTLOG_INFORMATION_TYPE = 1
     sys.modules['servicemanager'].PYS_SERVICE_STARTED = 1
+    sys.modules['servicemanager'].LogMsg = MagicMock()
+
 
 from app.service.main import PortKodiakService
 
