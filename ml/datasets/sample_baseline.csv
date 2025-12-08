@@ -1,0 +1,5 @@
+timestamp,process_path,process_hash,source_ip,dest_ip,dest_domain,dest_port,bytes_sent,bytes_recv,protocol,dns_query,parent_process,user_context
+2024-12-06 10:00:00,C:\Windows\System32\svchost.exe,a1b2c3d4e5f6,192.168.1.100,8.8.8.8,dns.google,53,64,128,UDP,dns.google,services.exe,SYSTEM
+2024-12-06 10:01:00,C:\Program Files\Firefox\firefox.exe,f1e2d3c4b5a6,192.168.1.100,142.250.185.46,google.com,443,512,2048,TCP,google.com,explorer.exe,User
+2024-12-06 10:02:00,C:\Windows\System32\svchost.exe,a1b2c3d4e5f6,192.168.1.100,192.168.1.1,router.local,80,128,256,TCP,,services.exe,SYSTEM
+2024-12-06 10:03:00,C:\Program Files\Chrome\chrome.exe,c3d4e5f6a7b8,192.168.1.100,172.217.14.206,youtube.com,443,1024,4096,TCP,youtube.com,explorer.exe,User
