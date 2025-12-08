@@ -30,7 +30,7 @@ Privacy-first application firewall for Windows with machine learning-powered ano
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/portkodiak-aishield.git
+git clone https://github.com/BrenesRM/portkodiak-aishield.git
 cd portkodiak-aishield
 ```
 
@@ -180,3 +180,4 @@ This is an alpha release. Use at your own risk. Always maintain backups and test
 ---
 
 **Made with ❤️ for Privacy and Security**
+
