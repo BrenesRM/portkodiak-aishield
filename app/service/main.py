@@ -15,13 +15,14 @@ import win32event  # type: ignore
 import servicemanager  # type: ignore
 
 from app.common.logging import setup_logging
+from app.config import settings
 
 class PortKodiakService(win32serviceutil.ServiceFramework):
     """Main service class for PortKodiakAIShield."""
     
-    _svc_name_ = "PortKodiakAIShield"
-    _svc_display_name_ = "PortKodiak AI Shield"
-    _svc_description_ = "Windows Application Firewall with ML-based Anomaly Detection"
+    _svc_name_ = settings.SERVICE_NAME
+    _svc_display_name_ = settings.SERVICE_DISPLAY_NAME
+    _svc_description_ = settings.SERVICE_DESCRIPTION
     
     def __init__(self, args: list) -> None:
         """Initialize the service."""
@@ -45,11 +46,10 @@ class PortKodiakService(win32serviceutil.ServiceFramework):
             (self._svc_name_, '')
         )
         
-        # Setup logging to ProgramData
-        log_dir = Path("C:/ProgramData/PortKodiakAIShield/logs")
+        # Setup logging
         try:
-            log_dir.mkdir(parents=True, exist_ok=True)
-            setup_logging(log_file=log_dir / "service.log")
+            settings.LOG_DIR.mkdir(parents=True, exist_ok=True)
+            setup_logging(log_file=settings.LOG_DIR / "service.log")
         except Exception:
             # Fallback to current directory if permission denied (dev mode)
             setup_logging(log_file=Path("service.log"))
