@@ -1,10 +1,15 @@
 import ctypes
 from ctypes import wintypes
 import uuid
-import psutil
+import hashlib
+
+# ... (Previous imports)
+
+# ... (Previous constants/classes)
+
+    # ... (existing methods)
 
 
-# Constants
 RPC_C_AUTHN_WINNT = 10
 RPC_C_AUTHN_LEVEL_DEFAULT = 0
 FWPM_SESSION_FLAG_DYNAMIC = 0x00000001
@@ -14,6 +19,17 @@ FWP_DIRECTION_OUTBOUND = 0
 FWP_DIRECTION_INBOUND = 1
 
 # GUIDs
+class GUID(ctypes.Structure):
+    _fields_ = [
+        ("Data1", ctypes.c_ulong),
+        ("Data2", ctypes.c_ushort),
+        ("Data3", ctypes.c_ushort),
+        ("Data4", ctypes.c_ubyte * 8)
+    ]
+
+    def __str__(self):
+        return f"{{{self.Data1:08x}-{self.Data2:04x}-{self.Data3:04x}-{self.Data4[0]:02x}{self.Data4[1]:02x}-{self.Data4[2]:02x}{self.Data4[3]:02x}{self.Data4[4]:02x}{self.Data4[5]:02x}{self.Data4[6]:02x}{self.Data4[7]:02x}}}"
+
 def DEFINE_GUID(l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8):
     return GUID(l, w1, w2, (ctypes.c_ubyte * 8)(b1, b2, b3, b4, b5, b6, b7, b8))
 
@@ -68,16 +84,6 @@ UINT8 = ctypes.c_uint8
 HANDLE = wintypes.HANDLE
 LPWSTR = wintypes.LPWSTR
 
-class GUID(ctypes.Structure):
-    _fields_ = [
-        ("Data1", ctypes.c_ulong),
-        ("Data2", ctypes.c_ushort),
-        ("Data3", ctypes.c_ushort),
-        ("Data4", ctypes.c_ubyte * 8)
-    ]
-
-    def __str__(self):
-        return f"{{{self.Data1:08x}-{self.Data2:04x}-{self.Data3:04x}-{self.Data4[0]:02x}{self.Data4[1]:02x}-{self.Data4[2]:02x}{self.Data4[3]:02x}{self.Data4[4]:02x}{self.Data4[5]:02x}{self.Data4[6]:02x}{self.Data4[7]:02x}}}"
 
 class FWPM_DISPLAY_DATA0(ctypes.Structure):
     _fields_ = [
@@ -213,6 +219,22 @@ class WfpManager:
         # Helper usually needed
         return []
     
+    @staticmethod
+    def calculate_file_hash(filepath):
+        """Calculates SHA256 hash of a file."""
+        if not filepath or filepath == "Unknown":
+            return None
+            
+        sha256_hash = hashlib.sha256()
+        try:
+            with open(filepath, "rb") as f:
+                # Read and update hash string value in blocks of 4K
+                for byte_block in iter(lambda: f.read(4096), b""):
+                    sha256_hash.update(byte_block)
+            return sha256_hash.hexdigest()
+        except (PermissionError, FileNotFoundError, OSError):
+            return "Unverified (Access Denied)"
+
     # ... (existing methods remain, inserting new ones)
 
     def add_block_rule(self, remote_port, name="Block Rule"):
@@ -404,11 +426,14 @@ class WfpManager:
                 except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                     pass
 
+                process_hash = self.calculate_file_hash(process_path)
+
                 connections.append({
                     "id": conn.connectionId,
                     "process_id": conn.processId,
                     "process_name": process_name,
                     "process_path": process_path,
+                    "process_hash": process_hash,
                     "local_port": conn.localPort,
                     "remote_port": conn.remotePort,
                     "direction": "Outbound" if conn.direction == FWP_DIRECTION_OUTBOUND else "Inbound"

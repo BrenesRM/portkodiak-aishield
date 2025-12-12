@@ -40,7 +40,10 @@ def test_wfp_connection():
                 if connections:
                     print("\nSample connections:")
                     for i, c in enumerate(connections[:5]):
-                        print(f"  {i+1}. [{c['process_name']}] (PID: {c['process_id']}) | {c['direction']} | {c['local_port']} -> {c['remote_port']}")
+                        hash_short = c.get('process_hash', 'N/A')
+                        if hash_short and len(hash_short) > 8:
+                            hash_short = hash_short[:8] + "..."
+                        print(f"  {i+1}. [{c['process_name']}] (PID: {c['process_id']}) | Hash: {hash_short} | {c['direction']} | {c['local_port']} -> {c['remote_port']}")
             except Exception as e:
                 print(f"Connection enumeration failed: {e}")
 
@@ -82,4 +85,9 @@ def test_wfp_connection():
         traceback.print_exc()
 
 if __name__ == "__main__":
-    test_wfp_connection()
+    try:
+        test_wfp_connection()
+    except Exception as e:
+        print(f"CRITICAL ERROR: {e}")
+        import traceback
+        traceback.print_exc()
