@@ -1,6 +1,8 @@
 import ctypes
 from ctypes import wintypes
 import uuid
+import psutil
+
 
 # Constants
 RPC_C_AUTHN_WINNT = 10
@@ -11,7 +13,49 @@ FWP_IP_VERSION_V6 = 1
 FWP_DIRECTION_OUTBOUND = 0
 FWP_DIRECTION_INBOUND = 1
 
-# Load WFP library
+# GUIDs
+def DEFINE_GUID(l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8):
+    return GUID(l, w1, w2, (ctypes.c_ubyte * 8)(b1, b2, b3, b4, b5, b6, b7, b8))
+
+FWPM_LAYER_ALE_AUTH_CONNECT_V4 = DEFINE_GUID(0xc38d57d1, 0x1317, 0x4076, 0x97, 0xca, 0xd5, 0x14, 0xc7, 0xc5, 0x85, 0x96)
+FWPM_CONDITION_IP_REMOTE_PORT = DEFINE_GUID(0x0c1ba1af, 0x5765, 0x453f, 0xaf, 0x22, 0xa8, 0xf7, 0x91, 0xac, 0x77, 0x5b)
+
+# Match Types
+FWP_MATCH_EQUAL = 0
+
+# Data Types
+FWP_UINT16 = 2
+FWP_UINT64 = 4
+
+# Action Types
+FWP_ACTION_BLOCK = 0x00001001 # (0x00000001 | 0x00001000)
+FWP_ACTION_PERMIT = 0x00001002
+
+class FWP_VALUE0(ctypes.Structure):
+    class _U(ctypes.Union):
+        _fields_ = [
+             ("uint16", ctypes.c_ushort),
+             ("uint32", ctypes.c_uint32),
+             ("uint64", ctypes.c_uint64),
+        ]
+    _fields_ = [
+        ("type", ctypes.c_int), # FWP_DATA_TYPE
+        ("u", _U) # union
+    ]
+
+class FWPM_FILTER_CONDITION0(ctypes.Structure):
+    _fields_ = [
+        ("fieldKey", GUID),
+        ("matchType", ctypes.c_int), # FWP_MATCH_TYPE
+        ("conditionValue", FWP_VALUE0)
+    ]
+
+class FWPM_ACTION0(ctypes.Structure):
+    _fields_ = [
+        ("type", ctypes.c_uint32), # FWP_ACTION_TYPE
+        ("filterType", GUID)
+    ]
+
 try:
     fwpuclnt = ctypes.windll.fwpuclnt
 except AttributeError:
@@ -146,10 +190,85 @@ fwpuclnt.FwpmConnectionEnum0.restype = UINT32
 fwpuclnt.FwpmConnectionDestroyEnumHandle0.argtypes = [HANDLE, HANDLE]
 fwpuclnt.FwpmConnectionDestroyEnumHandle0.restype = UINT32
 
+fwpuclnt.FwpmFilterAdd0.argtypes = [
+    HANDLE,
+    ctypes.POINTER(FWPM_FILTER0),
+    ctypes.c_void_p, # SECURITY_DESCRIPTOR
+    ctypes.POINTER(UINT64) # id
+]
+fwpuclnt.FwpmFilterAdd0.restype = UINT32
+
+fwpuclnt.FwpmFilterDeleteById0.argtypes = [
+    HANDLE,
+    UINT64
+]
+fwpuclnt.FwpmFilterDeleteById0.restype = UINT32
+
 class WfpManager:
     def __init__(self):
         self._engine_handle = HANDLE()
         self._is_open = False
+
+    def get_filter_id_list(self):
+        # Helper usually needed
+        return []
+    
+    # ... (existing methods remain, inserting new ones)
+
+    def add_block_rule(self, remote_port, name="Block Rule"):
+        """Adds a blocking rule for a specific remote port."""
+        if not self._is_open:
+            raise RuntimeError("Session not open")
+
+        # 1. Prepare Condition
+        cond = FWPM_FILTER_CONDITION0()
+        cond.fieldKey = FWPM_CONDITION_IP_REMOTE_PORT
+        cond.matchType = FWP_MATCH_EQUAL
+        cond.conditionValue.type = FWP_UINT16
+        cond.conditionValue.u.uint16 = remote_port
+
+        # 2. Prepare Filter
+        filter_struct = FWPM_FILTER0()
+        filter_struct.displayData.name = name
+        filter_struct.displayData.description = f"Blocks remote port {remote_port}"
+        filter_struct.flags = 0
+        filter_struct.layerKey = FWPM_LAYER_ALE_AUTH_CONNECT_V4
+        filter_struct.action.type = FWP_ACTION_BLOCK
+        filter_struct.weight.type = FWP_UINT64 
+        filter_struct.weight.u.uint64 = 0xFFFFFFFFFFFFFFFF # Max weight (approx) -> EMPTY (let WFP assign? No, use Empty if FWP_EMPTY)
+        # Actually for FWP_EMPTY type is 0 or FWP_EMPTY (0). CTypes defaults to 0.
+        # But for effective blocking we might want a high weight. 
+        # Let's try letting system assign (weight.type = FWP_EMPTY = 0).
+        
+        filter_struct.numFilterConditions = 1
+        filter_struct.filterCondition = ctypes.cast(ctypes.byref(cond), ctypes.c_void_p)
+
+        filter_id = UINT64()
+        
+        res = fwpuclnt.FwpmFilterAdd0(
+            self._engine_handle,
+            ctypes.byref(filter_struct),
+            None,
+            ctypes.byref(filter_id)
+        )
+        
+        if res != 0:
+            raise WindowsError(f"FwpmFilterAdd0 failed with error: {res}")
+            
+        return filter_id.value
+
+    def delete_rule(self, filter_id):
+        """Deletes a filter by ID."""
+        if not self._is_open:
+            raise RuntimeError("Session not open")
+            
+        res = fwpuclnt.FwpmFilterDeleteById0(
+            self._engine_handle,
+            filter_id
+        )
+        if res != 0:
+            raise WindowsError(f"FwpmFilterDeleteById0 failed with error: {res}")
+
 
     def open_session(self):
         """Opens a session to the Filter Engine."""
@@ -275,9 +394,21 @@ class WfpManager:
                 local_ip = "IPv6" if conn.ipVersion == FWP_IP_VERSION_V6 else str(conn.localV4Address) # Needs proper formatting
                 remote_ip = "IPv6" if conn.ipVersion == FWP_IP_VERSION_V6 else str(conn.remoteV4Address)
                 
+                # Process Resolution
+                process_name = "Unknown"
+                process_path = "Unknown"
+                try:
+                    p = psutil.Process(conn.processId)
+                    process_name = p.name()
+                    process_path = p.exe()
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    pass
+
                 connections.append({
                     "id": conn.connectionId,
                     "process_id": conn.processId,
+                    "process_name": process_name,
+                    "process_path": process_path,
                     "local_port": conn.localPort,
                     "remote_port": conn.remotePort,
                     "direction": "Outbound" if conn.direction == FWP_DIRECTION_OUTBOUND else "Inbound"
