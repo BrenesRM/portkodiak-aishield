@@ -30,3 +30,16 @@ class ConnectionEvent(Base):
     
     def __repr__(self) -> str:
         return f"<ConnectionEvent(proc={self.process_name}, ip={self.remote_ip}, action={self.action})>"
+
+class DnsLog(Base):
+    """Represents a DNS resolution event."""
+    __tablename__ = "dns_logs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    
+    ip_address: Mapped[str] = mapped_column(String(45))
+    hostname: Mapped[str] = mapped_column(String(255))
+    
+    def __repr__(self) -> str:
+        return f"<DnsLog(ip={self.ip_address}, host={self.hostname})>"

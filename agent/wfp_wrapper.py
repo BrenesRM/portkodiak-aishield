@@ -6,6 +6,20 @@ import socket
 import concurrent.futures
 import time
 import threading
+import sys
+import os
+
+# Adjust path to allow imports from app if running as script from agent dir
+if __name__ == "__main__":
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+try:
+    from app.common.database import SessionLocal
+    from app.common.models import DnsLog
+except ImportError:
+    # Fallback or mock for standalone testing if app not available
+    SessionLocal = None
+    DnsLog = None
 
 class DnsResolver:
     def __init__(self, cache_ttl=300):
@@ -53,18 +67,34 @@ class DnsResolver:
             return ip_address
             
     def _do_resolve(self, ip_address):
+        hostname = ip_address
         try:
             hostname, _, _ = socket.gethostbyaddr(ip_address)
             with self._cache_lock:
                 self._cache[ip_address] = (hostname, time.time())
-            return hostname
-        except socket.herror:
-            # IP not resolving
-             with self._cache_lock:
-                self._cache[ip_address] = (ip_address, time.time()) # Cache failure to avoid retry storm
-             return ip_address
         except Exception:
-             return ip_address
+            # Resolution failed, hostname remains ip_address
+            with self._cache_lock:
+                self._cache[ip_address] = (hostname, time.time())
+
+        # Log result regardless of success/fail
+        self._log_resolution(ip_address, hostname)
+        return hostname
+
+    def _log_resolution(self, ip, hostname):
+        """Logs the resolution to database if available."""
+        if SessionLocal and DnsLog:
+            try:
+                # Use a separate ephemeral session for logging to avoid threading issues
+                # Note: Ideally this should also be offloaded to executor if DB is slow
+                # but sqlite is fast enough for now or we rely on thread pool being size 5
+                with SessionLocal() as db:
+                    log = DnsLog(ip_address=ip, hostname=hostname)
+                    db.add(log)
+                    db.commit()
+            except Exception as e:
+                # Silent failure to not crash WFP
+                pass
 
     def shutdown(self):
         self._executor.shutdown(wait=False)

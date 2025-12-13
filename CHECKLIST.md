@@ -68,9 +68,9 @@
 - [x] ✅ Write tests
 
 ### Iteration 2.3: DNS Interception
-- [ ] 🔲 Intercept DNS queries (Passive Sniffing)
+- [x] ✅ Intercept DNS queries (Passive Sniffing)
 - [x] ✅ Implement reverse resolution (Active)
-- [ ] 🔲 Add DNS logging
+- [x] ✅ Add DNS logging
 - [x] ✅ Test DNS capture (Resolution)
 
 ### Iteration 2.4: Per-App Policy Engine
@@ -174,12 +174,12 @@ Update these percentages as you work:
 
 - Phase 0: Project Setup [100%] ⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛
 - Phase 1: Foundation [100%] ⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛
-- Phase 2: Core Interception [60%] ⬛⬛⬛⬛⬛⬛⬜⬜⬜⬜
+- Phase 2: Core Interception [75%] ⬛⬛⬛⬛⬛⬛⬛⬜⬜⬜
 - Phase 3: ML Pipeline [0%] ⚪⚪⚪⚪⚪⚪⚪⚪⚪⚪
 - Phase 4: Integration [0%] ⚪⚪⚪⚪⚪⚪⚪⚪⚪⚪
 - Phase 5: Polish & Release [0%] ⚪⚪⚪⚪⚪⚪⚪⚪⚪⚪
 
-**Overall Progress: 55%**
+**Overall Progress: 60%**
 
 ---
 
@@ -195,14 +195,14 @@ Add notes here as you work:
 2024-12-12 - Started Phase 2.1 (WFP POC). Implemented basic blocking.
 2024-12-12 - Phase 2.1 Complete. Started 2.2 (Process Tracking). Mapped connection PIDs to names and implemented SHA256 hashing.
 2024-12-12 - Phase 2.2 Complete. Added parent process tracking and special handling for svchost service groups.
-2024-12-12 - Phase 2.3 In Progress. Implemented Active Reverse DNS Resolution with caching.
+2024-12-13 - Phase 2.3 Complete. Implemented Active Reverse DNS Resolution and DNS Logging to SQLite.
 ```
 
 ## 🎯 Current Focus
 
-**Right Now:** Iteration 2.3: DNS Logging
-**Next Session:** Iteration 2.4: Per-App Policy
-**This Week Goal:** Complete Phase 2.3, Start 2.4
+**Right Now:** Iteration 2.4: Per-App Policy Engine
+**Next Session:** Policy Matching & Editor UI
+**This Week Goal:** Complete Phase 2
 
 ---
 
