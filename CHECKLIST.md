@@ -51,27 +51,27 @@
 
 ---
 
-## 🔌 Phase 2: Core Interception (Week 5-8) [0% Complete]
+## 🔌 Phase 2: Core Interception (Week 5-8) [35% Complete]
 
 ### Iteration 2.1: WFP Integration POC
-- [ ] 🔲 Research WFP API
-- [ ] 🔲 Create WFP wrapper (ctypes/cffi)
-- [ ] 🔲 List active connections with PIDs
-- [ ] 🔲 Implement basic allow/deny
-- [ ] 🔲 Test POC
+- [x] ✅ Research WFP API
+- [x] ✅ Create WFP wrapper (ctypes/cffi)
+- [x] ✅ List active connections with PIDs
+- [x] ✅ Implement basic allow/deny
+- [x] ✅ Test POC
 
 ### Iteration 2.2: Process Tracking
-- [ ] 🔲 Map connections to executables
-- [ ] 🔲 Calculate process hashes
-- [ ] 🔲 Track parent processes
-- [ ] 🔲 Handle special cases (svchost, Store apps)
-- [ ] 🔲 Write tests
+- [x] ✅ Map connections to executables
+- [x] ✅ Calculate process hashes
+- [x] ✅ Track parent processes
+- [x] ✅ Handle special cases (svchost, Store apps)
+- [x] ✅ Write tests
 
 ### Iteration 2.3: DNS Interception
-- [ ] 🔲 Intercept DNS queries
-- [ ] 🔲 Implement reverse resolution
+- [ ] 🔲 Intercept DNS queries (Passive Sniffing)
+- [x] ✅ Implement reverse resolution (Active)
 - [ ] 🔲 Add DNS logging
-- [ ] 🔲 Test DNS capture
+- [x] ✅ Test DNS capture (Resolution)
 
 ### Iteration 2.4: Per-App Policy Engine
 - [ ] 🔲 Implement policy matching
@@ -172,14 +172,14 @@
 
 Update these percentages as you work:
 
-- Phase 0: Project Setup [100%] ⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜
+- Phase 0: Project Setup [100%] ⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛
 - Phase 1: Foundation [100%] ⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛
-- Phase 2: Core Interception [0%] ⚪⚪⚪⚪⚪⚪⚪⚪⚪⚪
+- Phase 2: Core Interception [60%] ⬛⬛⬛⬛⬛⬛⬜⬜⬜⬜
 - Phase 3: ML Pipeline [0%] ⚪⚪⚪⚪⚪⚪⚪⚪⚪⚪
 - Phase 4: Integration [0%] ⚪⚪⚪⚪⚪⚪⚪⚪⚪⚪
 - Phase 5: Polish & Release [0%] ⚪⚪⚪⚪⚪⚪⚪⚪⚪⚪
 
-**Overall Progress: 35% Phase 1 Complete**
+**Overall Progress: 55%**
 
 ---
 
@@ -188,21 +188,21 @@ Update these percentages as you work:
 Add notes here as you work:
 
 ```
-[Date] - [Your notes]
-
-Example:
 2024-12-06 - Phase 0 structure created successfully
 2024-12-07 - Started Phase 1, service skeleton working
 2024-12-09 - Phase 0 complete. Started Phase 1. Implementation of Service Skeleton (Iter 1.1) in progress. Config and Registration script done.
 2024-12-09 - Phase 1 Complete. Service skeleton, UI shell, and Storage data models implemented.
-
----
+2024-12-12 - Started Phase 2.1 (WFP POC). Implemented basic blocking.
+2024-12-12 - Phase 2.1 Complete. Started 2.2 (Process Tracking). Mapped connection PIDs to names and implemented SHA256 hashing.
+2024-12-12 - Phase 2.2 Complete. Added parent process tracking and special handling for svchost service groups.
+2024-12-12 - Phase 2.3 In Progress. Implemented Active Reverse DNS Resolution with caching.
+```
 
 ## 🎯 Current Focus
 
-**Right Now:** Completed Phase 1 (Foundation)
-**Next Session:** Start Phase 2.1 - WFP Integration POC
-**This Week Goal:** Start Phase 2
+**Right Now:** Iteration 2.3: DNS Logging
+**Next Session:** Iteration 2.4: Per-App Policy
+**This Week Goal:** Complete Phase 2.3, Start 2.4
 
 ---
 

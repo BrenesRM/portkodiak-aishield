@@ -43,7 +43,9 @@ def test_wfp_connection():
                         hash_short = c.get('process_hash', 'N/A')
                         if hash_short and len(hash_short) > 8:
                             hash_short = hash_short[:8] + "..."
-                        print(f"  {i+1}. [{c['process_name']}] (PID: {c['process_id']}) | Hash: {hash_short} | {c['direction']} | {c['local_port']} -> {c['remote_port']}")
+                        parent = c.get('parent_info', 'Unknown')
+                        remote_host = c.get('remote_hostname', c['remote_ip'])
+                        print(f"  {i+1}. [{c['process_name']}] (PID: {c['process_id']}) | Parent: {parent} | Hash: {hash_short} | {c['direction']} | {c['local_port']} -> {c['remote_port']} ({remote_host})")
             except Exception as e:
                 print(f"Connection enumeration failed: {e}")
 

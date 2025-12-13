@@ -2,6 +2,72 @@ import ctypes
 from ctypes import wintypes
 import uuid
 import hashlib
+import socket
+import concurrent.futures
+import time
+import threading
+
+class DnsResolver:
+    def __init__(self, cache_ttl=300):
+        self._cache = {} # ip -> (hostname, timestamp)
+        self._cache_lock = threading.Lock()
+        self._ttl = cache_ttl
+        self._executor = concurrent.futures.ThreadPoolExecutor(max_workers=5)
+    
+    def resolve_ip(self, ip_address):
+        """Resolves IP to hostname using cache and background threads (pseudo-async).
+        Note: For immediate results this might block or return None if not cached. 
+        For this POC, we will block with timeout (bad for performance) or just return 'Resolving...' logic.
+        Actually, we can use a Future, but to keep it simple, let's use a quick blocking call with limited timeout 
+        or stick to ThreadPool for bulk if needed. 
+        
+        Better approach for UI: Return cached if valid. If not, trigger resolution and return ip (or 'Pending').
+        """
+        if ip_address == "IPv6" or ip_address.startswith("0."):
+             return ip_address
+
+        with self._cache_lock:
+            if ip_address in self._cache:
+                hostname, timestamp = self._cache[ip_address]
+                if time.time() - timestamp < self._ttl:
+                    return hostname
+        
+        # Cache miss. 
+        # Ideally trigger background resolution.
+        # But for this POC let's just do it synchronously but safely? 
+        # Synchronous gethostbyaddr can block for seconds.
+        # We will submit to executor and wait for a SHORT time.
+        
+        try:
+            future = self._executor.submit(self._do_resolve, ip_address)
+            # Wait max 0.1s. If timeout, return IP and let cache update for next time
+            hostname = future.result(timeout=0.1)
+            return hostname
+        except concurrent.futures.TimeoutError:
+            return ip_address # Return IP while resolving (future continues in background? No, submit usage here waits)
+            # Actually executor.submit returns a Future. calling result waits.
+            # If we timeout, the task is still running (thread not killed). 
+            # We can't cancel gethostbyaddr easily.
+            # Let's just return IP.
+        except Exception:
+            return ip_address
+            
+    def _do_resolve(self, ip_address):
+        try:
+            hostname, _, _ = socket.gethostbyaddr(ip_address)
+            with self._cache_lock:
+                self._cache[ip_address] = (hostname, time.time())
+            return hostname
+        except socket.herror:
+            # IP not resolving
+             with self._cache_lock:
+                self._cache[ip_address] = (ip_address, time.time()) # Cache failure to avoid retry storm
+             return ip_address
+        except Exception:
+             return ip_address
+
+    def shutdown(self):
+        self._executor.shutdown(wait=False)
 
 # ... (Previous imports)
 
@@ -214,6 +280,7 @@ class WfpManager:
     def __init__(self):
         self._engine_handle = HANDLE()
         self._is_open = False
+        self.dns_resolver = DnsResolver()
 
     def get_filter_id_list(self):
         # Helper usually needed
@@ -419,14 +486,36 @@ class WfpManager:
                 # Process Resolution
                 process_name = "Unknown"
                 process_path = "Unknown"
+                parent_info = "Unknown"
                 try:
                     p = psutil.Process(conn.processId)
                     process_name = p.name()
                     process_path = p.exe()
+                    
+                    # Special Case: svchost.exe service group
+                    if process_name.lower() == "svchost.exe":
+                        try:
+                            cmdline = p.cmdline()
+                            # Look for -k argument
+                            if "-k" in cmdline:
+                                idx = cmdline.index("-k")
+                                if idx + 1 < len(cmdline):
+                                    group = cmdline[idx+1]
+                                    process_name = f"{process_name} ({group})"
+                        except (psutil.AccessDenied, IndexError):
+                            pass
+
+                    # Parent Resolution
+                    parent = p.parent()
+                    if parent:
+                        parent_info = f"{parent.name()} (PID: {parent.pid})"
                 except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                     pass
 
                 process_hash = self.calculate_file_hash(process_path)
+                
+                # DNS Resolution
+                remote_hostname = self.dns_resolver.resolve_ip(remote_ip)
 
                 connections.append({
                     "id": conn.connectionId,
@@ -434,8 +523,11 @@ class WfpManager:
                     "process_name": process_name,
                     "process_path": process_path,
                     "process_hash": process_hash,
+                    "parent_info": parent_info,
                     "local_port": conn.localPort,
                     "remote_port": conn.remotePort,
+                    "remote_ip": remote_ip,
+                    "remote_hostname": remote_hostname,
                     "direction": "Outbound" if conn.direction == FWP_DIRECTION_OUTBOUND else "Inbound"
                 })
                 
