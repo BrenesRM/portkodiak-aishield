@@ -21,6 +21,8 @@ except ImportError:
     SessionLocal = None
     DnsLog = None
 
+from agent.policy_engine import PolicyEngine
+
 class DnsResolver:
     def __init__(self, cache_ttl=300):
         self._cache = {} # ip -> (hostname, timestamp)
@@ -311,6 +313,7 @@ class WfpManager:
         self._engine_handle = HANDLE()
         self._is_open = False
         self.dns_resolver = DnsResolver()
+        self.policy_engine = PolicyEngine()
 
     def get_filter_id_list(self):
         # Helper usually needed
@@ -547,6 +550,9 @@ class WfpManager:
                 # DNS Resolution
                 remote_hostname = self.dns_resolver.resolve_ip(remote_ip)
 
+                # Policy Check
+                policy_action = self.policy_engine.check_connection(process_path)
+
                 connections.append({
                     "id": conn.connectionId,
                     "process_id": conn.processId,
@@ -558,7 +564,8 @@ class WfpManager:
                     "remote_port": conn.remotePort,
                     "remote_ip": remote_ip,
                     "remote_hostname": remote_hostname,
-                    "direction": "Outbound" if conn.direction == FWP_DIRECTION_OUTBOUND else "Inbound"
+                    "direction": "Outbound" if conn.direction == FWP_DIRECTION_OUTBOUND else "Inbound",
+                    "policy_action": policy_action
                 })
                 
             if conns_ptr:

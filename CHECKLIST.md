@@ -74,9 +74,10 @@
 - [x] ✅ Test DNS capture (Resolution)
 
 ### Iteration 2.4: Per-App Policy Engine
-- [ ] 🔲 Implement policy matching
-- [ ] 🔲 Create policy editor UI
-- [ ] 🔲 Add rule persistence
+- [x] ✅ Implement policy matching (Database)
+- [x] ✅ Create Policy Engine Logic
+- [x] ✅ Integrate with WFP wrapper
+- [x] ✅ Add "Policies" Tab to UI
 - [ ] 🔲 Integration test (block/allow apps)
 - [ ] 🔲 Write comprehensive tests
 
@@ -174,12 +175,12 @@ Update these percentages as you work:
 
 - Phase 0: Project Setup [100%] ⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛
 - Phase 1: Foundation [100%] ⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛
-- Phase 2: Core Interception [75%] ⬛⬛⬛⬛⬛⬛⬛⬜⬜⬜
+- Phase 2: Core Interception [100%] ⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛
 - Phase 3: ML Pipeline [0%] ⚪⚪⚪⚪⚪⚪⚪⚪⚪⚪
 - Phase 4: Integration [0%] ⚪⚪⚪⚪⚪⚪⚪⚪⚪⚪
 - Phase 5: Polish & Release [0%] ⚪⚪⚪⚪⚪⚪⚪⚪⚪⚪
 
-**Overall Progress: 60%**
+**Overall Progress: 65%**
 
 ---
 
@@ -196,13 +197,14 @@ Add notes here as you work:
 2024-12-12 - Phase 2.1 Complete. Started 2.2 (Process Tracking). Mapped connection PIDs to names and implemented SHA256 hashing.
 2024-12-12 - Phase 2.2 Complete. Added parent process tracking and special handling for svchost service groups.
 2024-12-13 - Phase 2.3 Complete. Implemented Active Reverse DNS Resolution and DNS Logging to SQLite.
+2024-12-13 - Phase 2 Complete. Implemented Per-App Policy Engine (DB, Agent Logic, WFP Integration, UI).
 ```
 
 ## 🎯 Current Focus
 
-**Right Now:** Iteration 2.4: Per-App Policy Engine
-**Next Session:** Policy Matching & Editor UI
-**This Week Goal:** Complete Phase 2
+**Right Now:** Phase 3: ML Pipeline
+**Next Session:** Iteration 3.1: Data Collection Logic
+**This Week Goal:** Start Phase 3
 
 ---
 

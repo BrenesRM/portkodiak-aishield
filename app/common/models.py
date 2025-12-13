@@ -43,3 +43,15 @@ class DnsLog(Base):
     
     def __repr__(self) -> str:
         return f"<DnsLog(ip={self.ip_address}, host={self.hostname})>"
+
+class AppPolicy(Base):
+    """Represents a policy for a specific application/process."""
+    __tablename__ = "app_policies"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    process_path: Mapped[str] = mapped_column(String(512), unique=True) # Full path
+    policy_type: Mapped[str] = mapped_column(String(20)) # ALLOW or BLOCK
+    is_active: Mapped[bool] = mapped_column(default=True)
+    
+    def __repr__(self) -> str:
+        return f"<AppPolicy(path={self.process_path}, type={self.policy_type})>"
