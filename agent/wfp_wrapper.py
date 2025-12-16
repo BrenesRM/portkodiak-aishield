@@ -15,13 +15,79 @@ if __name__ == "__main__":
 
 try:
     from app.common.database import SessionLocal
-    from app.common.models import DnsLog
+    from app.common.models import DnsLog, TrafficSample
 except ImportError:
     # Fallback or mock for standalone testing if app not available
     SessionLocal = None
     DnsLog = None
+    TrafficSample = None
 
 from agent.policy_engine import PolicyEngine
+
+class DataCollector:
+    """Collects traffic samples and writes to DB in batches."""
+    def __init__(self, flush_interval=10, batch_size=50):
+        self.queue = []
+        self.lock = threading.Lock()
+        self.flush_interval = flush_interval
+        self.batch_size = batch_size
+        self.running = True
+        self.thread = threading.Thread(target=self._flush_loop, daemon=True)
+        self.thread.start()
+
+    def add_sample(self, info):
+        """Adds a connection sample to be logged."""
+        if not TrafficSample:
+            return
+            
+        with self.lock:
+            self.queue.append(info)
+            should_flush = len(self.queue) >= self.batch_size
+            
+        if should_flush:
+            self.flush()
+
+    def flush(self):
+        """Writes buffered samples to DB."""
+        if not SessionLocal or not TrafficSample:
+            return
+            
+        with self.lock:
+            if not self.queue:
+                return
+            to_write = list(self.queue)
+            self.queue.clear()
+            
+        try:
+            with SessionLocal() as db:
+                for s in to_write:
+                    # Avoid logging our own DB connection traffic if possible to prevent loops?
+                    # For now just log everything.
+                    sample = TrafficSample(
+                        process_name=s.get('process_name', 'Unknown'),
+                        process_path=s.get('process_path', 'Unknown'),
+                        process_hash=s.get('process_hash'),
+                        parent_info=s.get('parent_info'),
+                        remote_ip=s.get('remote_ip'),
+                        remote_port=s.get('remote_port'),
+                        remote_hostname=s.get('remote_hostname'),
+                        direction=s.get('direction', 'Outbound'),
+                        protocol="TCP" # Placeholder as WFP POC uses Connect layer which is mostly TCP
+                    )
+                    db.add(sample)
+                db.commit()
+        except Exception as e:
+            # print(f"Logging failed: {e}") # Noise reduction
+            pass
+
+    def _flush_loop(self):
+        while self.running:
+            time.sleep(self.flush_interval)
+            self.flush()
+            
+    def shutdown(self):
+        self.running = False
+        self.flush()
 
 class DnsResolver:
     def __init__(self, cache_ttl=300):
@@ -314,6 +380,7 @@ class WfpManager:
         self._is_open = False
         self.dns_resolver = DnsResolver()
         self.policy_engine = PolicyEngine()
+        self.collector = DataCollector()
 
     def get_filter_id_list(self):
         # Helper usually needed
@@ -552,8 +619,8 @@ class WfpManager:
 
                 # Policy Check
                 policy_action = self.policy_engine.check_connection(process_path)
-
-                connections.append({
+                
+                info = {
                     "id": conn.connectionId,
                     "process_id": conn.processId,
                     "process_name": process_name,
@@ -566,7 +633,12 @@ class WfpManager:
                     "remote_hostname": remote_hostname,
                     "direction": "Outbound" if conn.direction == FWP_DIRECTION_OUTBOUND else "Inbound",
                     "policy_action": policy_action
-                })
+                }
+
+                connections.append(info)
+                
+                # Collect for ML Training
+                self.collector.add_sample(info)
                 
             if conns_ptr:
                  fwpuclnt.FwpmFreeMemory0(ctypes.cast(conns_ptr, ctypes.c_void_p))

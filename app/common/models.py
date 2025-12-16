@@ -55,3 +55,26 @@ class AppPolicy(Base):
     
     def __repr__(self) -> str:
         return f"<AppPolicy(path={self.process_path}, type={self.policy_type})>"
+
+class TrafficSample(Base):
+    """Raw connection features for ML training."""
+    __tablename__ = "traffic_samples"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    
+    process_name: Mapped[str] = mapped_column(String(255))
+    process_path: Mapped[str] = mapped_column(String(512))
+    process_hash: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    parent_info: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    
+    remote_ip: Mapped[str] = mapped_column(String(45))
+    remote_port: Mapped[int] = mapped_column(Integer)
+    remote_hostname: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    protocol: Mapped[str] = mapped_column(String(10), default="TCP") # Mostly TCP for now
+    direction: Mapped[str] = mapped_column(String(10)) # Inbound/Outbound
+    
+    is_malicious: Mapped[bool] = mapped_column(default=False) # Label
+    
+    def __repr__(self) -> str:
+        return f"<TrafficSample(proc={self.process_name}, ip={self.remote_ip})>"
