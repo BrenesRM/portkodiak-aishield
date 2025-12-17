@@ -46,7 +46,11 @@ def test_wfp_connection():
                         parent = c.get('parent_info', 'Unknown')
                         remote_host = c.get('remote_hostname', c['remote_ip'])
                         policy = c.get('policy_action', 'UNKNOWN')
-                        print(f"  {i+1}. [{c['process_name']}] (PID: {c['process_id']}) | Policy: {policy} | Hash: {hash_short} | {c['local_port']} -> {c['remote_port']} ({remote_host})")
+                        ml_label = c.get('ml_label', 'N/A')
+                        ml_score = c.get('ml_score', 0.0)
+                        
+                        score_str = f"{ml_score:.2f}"
+                        print(f"  {i+1}. [{c['process_name']}] | ML: {ml_label} ({score_str}) | Policy: {policy} | {c['local_port']} -> {c['remote_port']} ({remote_host})")
             except Exception as e:
                 print(f"Connection enumeration failed: {e}")
 

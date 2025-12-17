@@ -23,6 +23,7 @@ except ImportError:
     TrafficSample = None
 
 from agent.policy_engine import PolicyEngine
+from ml.inference_engine import InferenceEngine
 
 class DataCollector:
     """Collects traffic samples and writes to DB in batches."""
@@ -381,6 +382,7 @@ class WfpManager:
         self.dns_resolver = DnsResolver()
         self.policy_engine = PolicyEngine()
         self.collector = DataCollector()
+        self.inference_engine = InferenceEngine()
 
     def get_filter_id_list(self):
         # Helper usually needed
@@ -620,6 +622,14 @@ class WfpManager:
                 # Policy Check
                 policy_action = self.policy_engine.check_connection(process_path)
                 
+                # Inference (ML)
+                ml_score, ml_label = self.inference_engine.predict({
+                    "remote_port": conn.remotePort,
+                    "process_name": process_name,
+                    "process_path": process_path,
+                    "direction": "Outbound" if conn.direction == FWP_DIRECTION_OUTBOUND else "Inbound"
+                })
+
                 info = {
                     "id": conn.connectionId,
                     "process_id": conn.processId,
@@ -632,7 +642,9 @@ class WfpManager:
                     "remote_ip": remote_ip,
                     "remote_hostname": remote_hostname,
                     "direction": "Outbound" if conn.direction == FWP_DIRECTION_OUTBOUND else "Inbound",
-                    "policy_action": policy_action
+                    "policy_action": policy_action,
+                    "ml_score": ml_score,
+                    "ml_label": ml_label
                 }
 
                 connections.append(info)
