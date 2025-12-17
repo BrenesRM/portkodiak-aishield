@@ -16,10 +16,11 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.
 
 try:
     from app.common.database import SessionLocal
-    from app.common.models import AppPolicy
+    from app.common.models import AppPolicy, Alert
 except ImportError:
     SessionLocal = None
     AppPolicy = None
+    Alert = None
 
 class PortKodiakWindow(QMainWindow):
     """Main application window."""
@@ -51,16 +52,19 @@ class PortKodiakWindow(QMainWindow):
     def setup_tabs(self):
         """Initialize all tabs."""
         self.dashboard_tab = QWidget()
+        self.alerts_tab = QWidget()
         self.policies_tab = QWidget()
         self.monitor_tab = QWidget()
         self.settings_tab = QWidget()
         
         self.tabs.addTab(self.dashboard_tab, "Dashboard")
+        self.tabs.addTab(self.alerts_tab, "Alerts")
         self.tabs.addTab(self.policies_tab, "Policies")
         self.tabs.addTab(self.monitor_tab, "Live Monitor")
         self.tabs.addTab(self.settings_tab, "Settings")
         
         self.setup_dashboard()
+        self.setup_alerts()
         self.setup_policies()
         self.setup_monitor()
         self.setup_settings()
@@ -150,11 +154,61 @@ class PortKodiakWindow(QMainWindow):
                     self.policy_table.setItem(i, 2, QTableWidgetItem(p.policy_type))
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to load policies: {e}")
+    def setup_monitor(self):
         """Setup Monitor tab content (placeholder)."""
         layout = QVBoxLayout(self.monitor_tab)
         label = QLabel("Real-time network traffic will appear here.")
         label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(label)
+
+    def setup_alerts(self):
+        """Setup Alerts tab content."""
+        layout = QVBoxLayout(self.alerts_tab)
+        
+        # 1. Alerts Table
+        self.alerts_table = QTableWidget()
+        self.alerts_table.setColumnCount(5)
+        self.alerts_table.setHorizontalHeaderLabels(["ID", "Time", "Process", "Score", "Status"])
+        header = self.alerts_table.horizontalHeader()
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+        layout.addWidget(self.alerts_table)
+        
+        # 2. Controls
+        btn_layout = QHBoxLayout()
+        refresh_btn = QPushButton("Refresh Alerts")
+        refresh_btn.clicked.connect(self.load_alerts)
+        btn_layout.addWidget(refresh_btn)
+        
+        layout.addLayout(btn_layout)
+        
+        # Timer for auto-refresh
+        self.alerts_timer = QTimer(self)
+        self.alerts_timer.timeout.connect(self.load_alerts)
+        self.alerts_timer.start(2000) # 2s poll
+        
+        self.load_alerts()
+
+    def load_alerts(self):
+        """Load alerts from DB."""
+        if not SessionLocal or not Alert:
+            return
+            
+        try:
+            with SessionLocal() as db:
+                alerts = db.query(Alert).order_by(Alert.timestamp.desc()).limit(50).all()
+                self.alerts_table.setRowCount(len(alerts))
+                for i, a in enumerate(alerts):
+                    self.alerts_table.setItem(i, 0, QTableWidgetItem(str(a.id)))
+                    self.alerts_table.setItem(i, 1, QTableWidgetItem(a.timestamp.strftime("%H:%M:%S")))
+                    self.alerts_table.setItem(i, 2, QTableWidgetItem(a.process_name))
+                    self.alerts_table.setItem(i, 3, QTableWidgetItem(f"{a.risk_score:.2f}"))
+                    self.alerts_table.setItem(i, 4, QTableWidgetItem(a.status))
+                    
+                    # Highlight high risk
+                    if a.risk_score < -0.5: # Example threshold
+                         self.alerts_table.item(i, 3).setBackground(Qt.GlobalColor.red)
+        except Exception as e:
+            pass # Avoid popup spam on timer
 
     def setup_settings(self):
         """Setup Settings tab content (placeholder)."""

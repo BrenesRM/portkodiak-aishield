@@ -118,11 +118,11 @@
 
 ---
 
-## 🔗 Phase 4: Integration (Week 13-15) [0% Complete]
-
+## 🔗 Phase 4: Integration (Week 13-15) [30% Complete]
 ### Iteration 4.1: Anomaly Alerts & Feedback
-- [ ] 🔲 Create alert viewer UI
-- [ ] 🔲 Real-time alert display
+- [x] ✅ Create alert viewer UI (Tabs/Table)
+- [x] ✅ Real-time alert display (Polling)
+- [x] ✅ Alerts persistence (DB)
 - [ ] 🔲 User labeling (FP/TP)
 - [ ] 🔲 Feedback storage
 - [ ] 🔲 Export labeled data
@@ -180,10 +180,10 @@ Update these percentages as you work:
 - Phase 1: Foundation [100%] ⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛
 - Phase 2: Core Interception [100%] ⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛
 - Phase 3: ML Pipeline [100%] ⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛
-- Phase 4: Integration [0%] ⚪⚪⚪⚪⚪⚪⚪⚪⚪⚪
+- Phase 4: Integration [30%] ⬛⬛⬛⬜⬜⬜⬜⬜⬜⬜
 - Phase 5: Polish & Release [0%] ⚪⚪⚪⚪⚪⚪⚪⚪⚪⚪
 
-**Overall Progress: 80%**
+**Overall Progress: 85%**
 
 ---
 
@@ -204,13 +204,14 @@ Add notes here as you work:
 2024-12-16 - Phase 3.1 Complete. Implemented Data Collection (TrafficSample model) and Export Script for ML training.
 2024-12-16 - Phase 3.2 Complete. Created Jupyter Notebook, trained model locally as fallback.
 2024-12-16 - Phase 3 Complete. Implemented Inference Engine, integrated with WFP, and verified with unit tests.
+2024-12-17 - Phase 4.1 Complete. Implemented Alert model, Agent alert generation, and Alerts UI tab with polling.
 ```
 
 ## 🎯 Current Focus
 
-**Right Now:** Phase 4: Integration
-**Next Session:** Iteration 4.1: Anomaly Alerts
-**This Week Goal:** Alerting UI
+**Right Now:** Iteration 4.2: Decision Actions
+**Next Session:** Buttons & Logic
+**This Week Goal:** Working Action Buttons
 
 ---
 

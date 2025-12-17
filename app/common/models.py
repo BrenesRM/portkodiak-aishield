@@ -76,5 +76,25 @@ class TrafficSample(Base):
     
     is_malicious: Mapped[bool] = mapped_column(default=False) # Label
     
+    
     def __repr__(self) -> str:
         return f"<TrafficSample(proc={self.process_name}, ip={self.remote_ip})>"
+
+class Alert(Base):
+    """Represents a high-risk event/anomaly detected by the system."""
+    __tablename__ = "alerts"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    
+    process_name: Mapped[str] = mapped_column(String(255))
+    process_path: Mapped[str] = mapped_column(String(512))
+    
+    remote_ip: Mapped[str] = mapped_column(String(45))
+    remote_port: Mapped[int] = mapped_column(Integer)
+    
+    risk_score: Mapped[float] = mapped_column(Float)
+    status: Mapped[str] = mapped_column(String(20), default="New") # New, Viewed, Actioned
+    
+    def __repr__(self) -> str:
+        return f"<Alert(proc={self.process_name}, score={self.risk_score})>"

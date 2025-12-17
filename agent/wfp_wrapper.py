@@ -15,7 +15,7 @@ if __name__ == "__main__":
 
 try:
     from app.common.database import SessionLocal
-    from app.common.models import DnsLog, TrafficSample
+    from app.common.models import DnsLog, TrafficSample, Alert
 except ImportError:
     # Fallback or mock for standalone testing if app not available
     SessionLocal = None
@@ -383,6 +383,7 @@ class WfpManager:
         self.policy_engine = PolicyEngine()
         self.collector = DataCollector()
         self.inference_engine = InferenceEngine()
+        self.recent_alerts = {} # (path, ip, port) -> timestamp
 
     def get_filter_id_list(self):
         # Helper usually needed
@@ -629,6 +630,30 @@ class WfpManager:
                     "process_path": process_path,
                     "direction": "Outbound" if conn.direction == FWP_DIRECTION_OUTBOUND else "Inbound"
                 })
+                
+                # Alert Generation
+                if ml_label == "Anomaly" and Alert and SessionLocal:
+                    try:
+                        alert_key = (process_path, remote_ip, conn.remotePort)
+                        now = time.time()
+                        last_alert = self.recent_alerts.get(alert_key, 0)
+                        
+                        if now - last_alert > 60: # 60s cooldown
+                            with SessionLocal() as db:
+                                alert = Alert(
+                                    process_name=process_name,
+                                    process_path=process_path,
+                                    remote_ip=remote_ip,
+                                    remote_port=conn.remotePort,
+                                    risk_score=ml_score,
+                                    status="New"
+                                )
+                                db.add(alert)
+                                db.commit()
+                            self.recent_alerts[alert_key] = now
+                    except Exception as e:
+                        # print(f"Alert creation failed: {e}")
+                        pass
 
                 info = {
                     "id": conn.connectionId,
