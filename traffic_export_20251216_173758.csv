@@ -1,0 +1,4 @@
+timestamp,process_name,process_path,process_hash,parent_info,remote_ip,remote_port,remote_hostname,protocol,direction,is_malicious
+2025-12-16 18:34:42.970069,test_proc_0.exe,C:\Windows\test_proc_0.exe,,,10.0.0.0,80,,TCP,Outbound,False
+2025-12-16 18:34:42.970069,test_proc_1.exe,C:\Windows\test_proc_1.exe,,,10.0.0.1,80,,TCP,Outbound,False
+2025-12-16 18:34:42.970069,test_proc_2.exe,C:\Windows\test_proc_2.exe,,,10.0.0.2,80,,TCP,Outbound,False
