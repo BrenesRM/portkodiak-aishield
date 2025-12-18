@@ -95,6 +95,7 @@ class Alert(Base):
     
     risk_score: Mapped[float] = mapped_column(Float)
     status: Mapped[str] = mapped_column(String(20), default="New") # New, Viewed, Actioned
+    action_taken: Mapped[Optional[str]] = mapped_column(String(50), nullable=True) # Blocked, Killed, etc.
     
     def __repr__(self) -> str:
         return f"<Alert(proc={self.process_name}, score={self.risk_score})>"

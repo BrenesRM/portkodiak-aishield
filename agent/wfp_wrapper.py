@@ -24,6 +24,7 @@ except ImportError:
 
 from agent.policy_engine import PolicyEngine
 from ml.inference_engine import InferenceEngine
+from app.core.action_manager import ActionManager
 
 class DataCollector:
     """Collects traffic samples and writes to DB in batches."""
@@ -383,6 +384,8 @@ class WfpManager:
         self.policy_engine = PolicyEngine()
         self.collector = DataCollector()
         self.inference_engine = InferenceEngine()
+        self.action_manager = ActionManager(self) # Pass self as wfp_agent
+        self.action_manager.start_polling() # Start watching DB for commands
         self.recent_alerts = {} # (path, ip, port) -> timestamp
 
     def get_filter_id_list(self):

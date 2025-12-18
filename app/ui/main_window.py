@@ -161,14 +161,20 @@ class PortKodiakWindow(QMainWindow):
         label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(label)
 
+                    if a.risk_score < -0.5: # Example threshold
+                         self.alerts_table.item(i, 3).setBackground(Qt.GlobalColor.red)
+                         
+        except Exception as e:
+            pass # Avoid popup spam on timer
+
     def setup_alerts(self):
         """Setup Alerts tab content."""
         layout = QVBoxLayout(self.alerts_tab)
         
         # 1. Alerts Table
         self.alerts_table = QTableWidget()
-        self.alerts_table.setColumnCount(5)
-        self.alerts_table.setHorizontalHeaderLabels(["ID", "Time", "Process", "Score", "Status"])
+        self.alerts_table.setColumnCount(6)
+        self.alerts_table.setHorizontalHeaderLabels(["ID", "Time", "Process", "Score", "Status", "Actions"])
         header = self.alerts_table.horizontalHeader()
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
         layout.addWidget(self.alerts_table)
@@ -179,6 +185,14 @@ class PortKodiakWindow(QMainWindow):
         refresh_btn.clicked.connect(self.load_alerts)
         btn_layout.addWidget(refresh_btn)
         
+        kill_btn = QPushButton("Action: Kill Selected")
+        kill_btn.clicked.connect(lambda: self.trigger_action("PENDING_KILL"))
+        btn_layout.addWidget(kill_btn)
+        
+        block_btn = QPushButton("Action: Block Selected")
+        block_btn.clicked.connect(lambda: self.trigger_action("PENDING_BLOCK"))
+        btn_layout.addWidget(block_btn)
+        
         layout.addLayout(btn_layout)
         
         # Timer for auto-refresh
@@ -187,6 +201,33 @@ class PortKodiakWindow(QMainWindow):
         self.alerts_timer.start(2000) # 2s poll
         
         self.load_alerts()
+
+    def trigger_action(self, action_status):
+        """Update selected alert status to trigger agent action."""
+        row = self.alerts_table.currentRow()
+        if row < 0:
+            QMessageBox.warning(self, "No Selection", "Please select an alert to action.")
+            return
+
+        alert_id = int(self.alerts_table.item(row, 0).text())
+        
+        if not SessionLocal:
+            return
+
+        try:
+            with SessionLocal() as db:
+                alert = db.query(Alert).filter(Alert.id == alert_id).first()
+                if alert:
+                    if "PENDING" in alert.status or "BLOCKED" in alert.status or "KILLED" in alert.status:
+                         QMessageBox.information(self, "Info", f"Alert is already in state: {alert.status}")
+                         return
+                         
+                    alert.status = action_status
+                    db.commit()
+                    QMessageBox.information(self, "Success", f"Marked Alert {alert_id} for {action_status}")
+                    self.load_alerts()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to action alert: {e}")
 
     def load_alerts(self):
         """Load alerts from DB."""
@@ -204,6 +245,11 @@ class PortKodiakWindow(QMainWindow):
                     self.alerts_table.setItem(i, 3, QTableWidgetItem(f"{a.risk_score:.2f}"))
                     self.alerts_table.setItem(i, 4, QTableWidgetItem(a.status))
                     
+                    if i < self.alerts_table.columnCount(): 
+                        # Safety check if column count mismatch (we added Actions column, it is index 5)
+                        # We need to fill Actions column? No, standard QTableWidget items are None by default.
+                        pass
+
                     # Highlight high risk
                     if a.risk_score < -0.5: # Example threshold
                          self.alerts_table.item(i, 3).setBackground(Qt.GlobalColor.red)
